@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>View All Records</title>
+  <script
+    id="sap-ui-bootstrap"
+    src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+    data-sap-ui-libs="sap.m"
+    data-sap-ui-theme="sap_belize"
+    data-sap-ui-compatVersion="edge"
+    data-sap-ui-async="true">
+  </script>
+
+  <script>
+    sap.ui.getCore().attachInit(function() {
+      // Fetch records from OData service
+      fetch('/odata/v4/record/Records')
+        .then(response => response.json())
+        .then(data => {
+          const records = data.value; // 'value' contains the list of records
+
+          // Create SAPUI5 Table
+          const oTable = new sap.m.Table({
+            columns: [
+              new sap.m.Column({ header: new sap.m.Label({ text: "ID" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Creation Time" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Creation By" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Last Modified" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Last Modified By" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Request Name" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Request Description" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Priority" }) }),
+              new sap.m.Column({ header: new sap.m.Label({ text: "Action" }) })
+            ]
+          });
+
+          // Populate Table with records
+          records.forEach((record) => {
+            oTable.addItem(new sap.m.ColumnListItem({
+              cells: [
+                new sap.m.Text({ text: record.ID }),
+                new sap.m.Text({ text: record.creation_time }),
+                new sap.m.Text({ text: record.creation_by }),
+                new sap.m.Text({ text: record.last_modified }),
+                new sap.m.Text({ text: record.last_modified_by }),
+                new sap.m.Text({ text: record.request_name }),
+                new sap.m.Text({ text: record.request_description }),
+                new sap.m.Text({ text: record.priority }),
+                new sap.m.Link({
+                  text: "Edit",
+                  press: function() {
+                    window.location.href = `edit.html?ID=${record.ID}`;
+                  }
+                })
+              ]
+            }));
+          });
+
+          // Place Table on the page
+          oTable.placeAt("content");
+
+        })
+        .catch(error => {
+          console.error('Error fetching records:', error);
+        });
+    });
+  </script>
+<script>
+    sap.ui.getCore().attachInit(function() {
+      // Create a "Create Entry" button
+      const oCreateButton = new sap.m.Button({
+        text: "Create Entry",
+        press: function() {
+          window.location.href = "create.html";
+        }
+      });
+  
+      // Place the "Create Entry" button on the page
+      oCreateButton.placeAt("content");
+  
+      // ... Existing code for table generation ...
+    });
+  </script>
+</head>
+<body class="sapUiBody">
+  <div id="content"></div>
+</body>
+</html>

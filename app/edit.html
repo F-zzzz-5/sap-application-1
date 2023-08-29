@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Record</title>
+  <script
+    id="sap-ui-bootstrap"
+    src="https://sapui5.hana.ondemand.com/resources/sap-ui-core.js"
+    data-sap-ui-libs="sap.m"
+    data-sap-ui-theme="sap_belize"
+    data-sap-ui-compatVersion="edge"
+    data-sap-ui-async="true">
+  </script>
+
+  <script>
+    sap.ui.getCore().attachInit(function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('ID');
+
+      fetch(`/odata/v4/record/Records(${id})`)
+        .then(response => response.json())
+        .then(data => {
+          const oInputs = {};
+
+          Object.keys(data).forEach(key => {
+            const oLabel = new sap.m.Label({ text: key });
+            oInputs[key] = new sap.m.Input({ value: data[key] });
+            oLabel.placeAt("content");
+            oInputs[key].placeAt("content");
+          });
+
+          const oSaveButton = new sap.m.Button({
+            text: "Save",
+            press: function() {
+                console.log("pressed");
+                const updatedData = {};
+                const currentTime = new Date();
+                const isoString = currentTime.toISOString();
+                const formattedTime = isoString.slice(0, -1) + 'Z';
+
+                oInputs["last_modified"] = formattedTime
+                oInputs["last_modified_by"] = "Guest"
+
+                Object.keys(oInputs).forEach(key => {
+                    const indx = oInputs[key]
+                    var is_f = indx instanceof Object
+                    var value = null
+                    if (is_f){
+                        value = indx.getValue();
+                    } else {
+                        value = indx
+                    }
+
+                    console.log(value);
+                    
+                    if (value !== "" && value !== null) {  // Ignore empty strings and null values
+                        if (key === "ID" || key === "priority") {
+                        updatedData[key] = parseInt(value);
+                        } else {
+                        updatedData[key] = value;
+                        }
+                    }
+                });
+
+              fetch(`/odata/v4/record/Records(${id})`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+              })
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok');
+                }
+
+                window.location.href = "index.html";
+              })
+              .catch(error => {
+                console.error('Error updating record:', error);
+              });
+            }
+          });
+
+          oSaveButton.placeAt("content");
+        })
+        .catch(error => {
+          console.error('Error fetching record:', error);
+        });
+    });
+  </script>
+</head>
+<body class="sapUiBody">
+  <div id="content"></div>
+</body>
+</html>
